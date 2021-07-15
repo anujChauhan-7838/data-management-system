@@ -44,7 +44,7 @@ This is the admin project built on laravel 8 with multi authentication and mutli
   # Username/Email -> sm.anuj.chauhan@yopmail.com
   # password       -> 12345678
   
-  After that it is ask a OTP (One Time Password ) . which has been sent the yopmail mail id (sm.anuj.chauhan@yopmail.com).
+  After that it will ask a OTP (One Time Password ) . which has been sent the yopmail mail id (sm.anuj.chauhan@yopmail.com).
   just open the url(https://yopmail.com/en/) and enter your email name (sm.anuj.chauhan) here you will see the one time password mail . if you get it then copy and paste in the verify OTP section . Otherwise you can find it from dabatase if you are developer. just go to database and click on users table and get the OTP from otp column and copy an paste it.
   
   
