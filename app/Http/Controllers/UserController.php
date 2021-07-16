@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\UserRole;
+use App\Models\Module;
 
 class UserController extends Controller
 {
@@ -33,7 +34,21 @@ class UserController extends Controller
         $user = User::find($id);
         if($user){
             $roles = Role::all()->except(1);
-          return view('edit-user',['user'=>$user->toArray(),'roles'=>$roles->toArray(),'id'=>$id]);
+            $modules = Module::all();
+            $modulePermissions = [];
+            foreach ($user->Userroles as $key => $value) {
+                $module                              = $value->module->toArray();
+                $module_name                         = strtolower($module['name']);
+                $modulePermissions[$module_name]     = $value->toArray();	
+                $modulePermissions[$module_name]['module_name'] = $module['name'];
+            }
+          return view('edit-user',[
+              'user'=>$user->toArray(),
+              'roles'=>$roles->toArray(),
+              'id'=>$id,
+              'modules'=>$modules->toArray(),
+              'modulePermissions'=>$modulePermissions
+            ]);
         }else{
             return redirect('/users');
         }
@@ -41,11 +56,24 @@ class UserController extends Controller
     }
 
     public function update(Request $request){
-        $request->validate([
+        
+        $rules = [
             'image' => 'image|mimes:jpeg,png,jpg|max:1028',
             'first_name' => 'required',
             'last_name' => 'required',
-        ]);
+            'modules' =>'required|min:1'
+
+        ];
+    
+        $customMessages = [
+            'required' => 'The :attribute field is required.',
+            'image' => 'Please upload valid image (jpeg,jpg,png).',
+            'mimes' => 'Supported image type are jpeg, jpg, png.',
+            'email.max'  => '199 Maximum number of character is allowed for email id',
+            'modules.min' => 'Role permission is required.'
+        ];
+    
+        $this->validate($request, $rules, $customMessages);
         $allParams = $request->all();
         
         $user = User::find($allParams['id']);
@@ -63,7 +91,20 @@ class UserController extends Controller
            }
            if(isset($allParams['userRole']) && !empty($allParams['userRole'])){
              $user->user_type = (int)$allParams['userRole'];
-             $this->performRoleAssignment($user,$allParams);
+             $userRoles = array();
+            foreach($allParams['modules'] as $key => $module){
+                $tmpArr = array(
+                    'user_id'=>(int)$allParams['id'],
+                    'role_id'=>(int)$allParams['userRole'],
+                    'module_id'=>(int)$key,
+                    'add'=> isset($module['add'])?(string)$module['add']:'0',
+                    'edit'=>isset($module['edit'])?(string)$module['edit']:'0',
+                    'view'=>isset($module['view'])?(string)$module['view']:'0',
+                    'delete'=>isset($module['delete'])?(string)$module['delete']:'0',
+                );
+                array_push($userRoles , $tmpArr);
+            }
+            $this->performRoleAssignment($userRoles,$user->toArray(),0);
              $this->sendMail($allParams,0);
            }
            $user->save();
@@ -75,87 +116,45 @@ class UserController extends Controller
     }
 
 
-    public function performRoleAssignment($user,$allParams,$isAdd = 0){
-          $rolesAss = array('admin'=>array(
-            array(
-                'user_id'=>(int)$user['id'],
-                'role_id'=>(int)$allParams['userRole'],
-                'module_id'=>1,
-                'add'=>1,
-                'edit'=>1,
-                'view'=>1,
-                'delete'=>1
-            ),
-            array(
-                'user_id'=>(int)$user['id'],
-                'role_id'=>(int)$allParams['userRole'],
-                'module_id'=>2,
-                'add'=>1,
-                'edit'=>1,
-                'view'=>1,
-                'delete'=>1
-            )
-            ),
-            'sadmin'=>array(
-                
-                array(
-                    'user_id'=>(int)$user['id'],
-                    'role_id'=>(int)$allParams['userRole'],
-                    'module_id'=>3,
-                    'add'=>1,
-                    'edit'=>1,
-                    'view'=>1,
-                    'delete'=>1
-                ),
-                array(
-                    'user_id'=>(int)$user['id'],
-                    'role_id'=>(int)$allParams['userRole'],
-                    'module_id'=>4,
-                    'add'=>1,
-                    'edit'=>1,
-                    'view'=>1,
-                    'delete'=>1
-                    )
-                )
-        );
+    public function performRoleAssignment($userRoles,$user,$isAdd = 0){
+        $data = $userRoles;
         if($isAdd == 0)
         UserRole::where('user_id',(int)$user['id'])->delete();
-        
-        $data = array();
-        if($allParams['userRole'] == 2){
-            $data = $rolesAss['admin'];
-        }else{
-            $data = $rolesAss['sadmin'];
-        }
-        //  echo "<pre>";
-        //  print_r($data); die;
         if(!empty($data)){
           $roleCreated =  UserRole::insert($data);
-          //print_r()
-          
         }
-
         return true;
-
-
     }
 
 
     public function add(){
           $roles = Role::all()->except(1);
-          return view('add-user',['roles'=>$roles->toArray()]);
+          $modules = Module::all();
+          return view('add-user',['roles'=>$roles->toArray(),'modules'=>$modules->toArray()]);
     }
 
 
     public function store(Request $request){
-        $request->validate([
+        $rules = [
             'image' => 'required|image|mimes:jpeg,png,jpg|max:1028',
             'first_name' => 'required',
             'last_name' => 'required',
             'email'=>'required|max:199|unique:users',
-            'password'=>'required|max:15'
+            'password'=>'required|max:15',
+            'modules' =>'required|min:1'
 
-        ]); 
+        ];
+    
+        $customMessages = [
+            'required' => 'The :attribute field is required.',
+            'image' => 'Please upload valid image (jpeg,jpg,png).',
+            'mimes' => 'Supported image type are jpeg, jpg, png.',
+            'email.max'  => '199 Maximum number of character is allowed for email id',
+            'password.max'  => '15 Maximum number of character is allowed for email id',
+            'modules.min' => 'Role permission is required.'
+        ];
+    
+        $this->validate($request, $rules, $customMessages);
         $all = $request->all();
         
         $data = array(
@@ -177,7 +176,21 @@ class UserController extends Controller
         if($user){
             $user = $user->toArray();
             $allParams['userRole'] = $all['userRole'];
-            $this->performRoleAssignment($user,$allParams,1);
+            $userRoles = array();
+            foreach($all['modules'] as $key => $module){ //dd($module);
+                $tmpArr = array(
+                    'user_id'=>(int)$user['id'],
+                    'role_id'=>(int)$allParams['userRole'],
+                    'module_id'=>(int)$key,
+                    'add'=> isset($module['add'])?(string)$module['add']:'0',
+                    'edit'=>isset($module['edit'])?(string)$module['edit']:'0',
+                    'view'=>isset($module['view'])?(string)$module['view']:'0',
+                    'delete'=>isset($module['delete'])?(string)$module['delete']:'0',
+                );
+                array_push($userRoles , $tmpArr);
+            }
+           
+            $this->performRoleAssignment($userRoles,$user,1);
             $this->sendMail($all);
         }  
         return redirect()->route('users')

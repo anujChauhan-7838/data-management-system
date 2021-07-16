@@ -1,3 +1,52 @@
+/*----------Table Elemenents----------*/
+ table {
+	width: 100%;
+	border-collapse: collapse;
+	color: #444444;
+	border-top: 1px #ccc solid;
+	border-bottom: 1px #ccc solid;
+	margin: 0 0 1.35714em 0;
+}
+caption {
+	font-variant: small-caps;
+}
+th, td {
+	line-height: 1.5em;
+	vertical-align: top;
+	padding: 0.71429em 0.5em;
+}
+th *:first-child, td *:first-child {
+	margin-top: 0;
+}
+thead th {
+	text-align: left;
+	color: #000;
+	border-bottom: 2px #000 solid;
+}
+tbody th {
+	text-align: left;
+	border-top: 1px solid #ccc;
+}
+tbody td {
+	text-align: left;
+	border-top: 1px solid #ccc;
+}
+
+table,tr,td,thead,tfoot,tbody,th{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+
 html,
 body {
 	height: 100%;
@@ -6155,6 +6204,21 @@ input[type="checkbox"], input[type="radio"] {
     float: right;
     color: #ffffff;
 }
+.module-p-heading{
+	margin-bottom: 5px;
+    font-weight: 700;
+}
+.module-table-sec{
+	border: 1px solid #d2d6de;
+	margin-bottom: 30px;
+}
+tbody tr:nth-child(2n+1){
+	background-color: #fff;
+}
+td{
+	padding: 10px;
+}
+
 
 .image-display{
 	width: 160px;

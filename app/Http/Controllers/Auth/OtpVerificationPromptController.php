@@ -34,7 +34,6 @@ class OtpVerificationPromptController extends Controller
         $postData = $request->all();
         $user     = auth()->user();
         if($user){
-            
              if($user->otp == $postData['otp']){
                 $user->otp_verify = 1;
                 $user->save();

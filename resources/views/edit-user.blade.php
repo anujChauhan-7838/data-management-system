@@ -1,3 +1,5 @@
+<?php //echo "<pre>";
+//print_r($modulePermissions); die;?>
 <x-admin-layout>
 <div class="content-wrapper">
 <section class="content-header">
@@ -63,6 +65,50 @@
     </select>
   </div>
   @endif
+
+  <div class="form-group">
+   <div class="module-p-heading">{{__('Modules Permissions')}}</div>
+   <div class="module-old module-p-heading module-table-sec">
+    <table>
+      <thead>
+      
+      <td>{{__('Module Name')}}</td>
+      <td>{{__('Add')}}</td>
+      <td>{{__('Edit')}}</td>
+      <td>{{__('View')}}</td>
+      <td>{{__('Delete')}}</td>
+      
+</thead>
+<tbody>
+   @foreach($modules as $module)
+     <tr>
+       <td>{{$module['name']}}</td>
+       <td>
+         <input type="checkbox" name="modules[{{$module['id']}}][add]" value="1"
+         @if(isset($modulePermissions[strtolower($module['name'])]) && $modulePermissions[strtolower($module['name'])]['add'] == 1) checked="checked" @endif
+         >
+        </td>
+       <td>
+         <input type="checkbox" name="modules[{{$module['id']}}][edit]" value="1"
+         @if(isset($modulePermissions[strtolower($module['name'])]) && $modulePermissions[strtolower($module['name'])]['edit'] == 1) checked="checked" @endif
+         >
+        </td>
+       <td>
+         <input type="checkbox" name="modules[{{$module['id']}}][view]" value="1"
+         @if(isset($modulePermissions[strtolower($module['name'])]) && $modulePermissions[strtolower($module['name'])]['view'] == 1) checked="checked" @endif
+         >
+        </td>
+       <td>
+         <input type="checkbox" name="modules[{{$module['id']}}][delete]" value="1"
+         @if(isset($modulePermissions[strtolower($module['name'])]) && $modulePermissions[strtolower($module['name'])]['delete'] == 1) checked="checked" @endif
+         >
+        </td>
+    </tr>
+   
+   @endforeach
+</tbody>
+</table>
+  </div>
   <button type="button" class="btn btn-secondary" name="back" onclick="window.location.href='/users'">{{__('Back')}}</button>
   <button type="submit" class="btn btn-primary" name="submit">{{__('Submit')}}</button>
 </form>
